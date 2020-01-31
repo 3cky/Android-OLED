@@ -1,46 +1,54 @@
-Pi OLED Display
+Android OLED Display
 ===============
 
-A Java library to drive the popular monochrome 128x64 pixel OLED display (SSD1306)
-from a Raspberry Pi. The display can be bought from Adafruit or from a lot of ebay
-vendors.
+A Java library for Android to drive the popular monochrome 128x64 pixel OLED display (SSD1306)
+device using [usb-i2c-android](https://github.com/3cky/usb-i2c-android) interfacing library.
 
-This is basically a rough port of Adafruit's SSD1306 library for Arduino which
-can be found here: https://github.com/adafruit/Adafruit_SSD1306
+Ported to Java from [Adafruit's SSD1306 library for Arduino](https://github.com/adafruit/Adafruit_SSD1306) 
+by Florian Frankenberger in [Pi-OLED](https://github.com/entrusc/Pi-OLED) project.
 
 how to use?
 ============
-You can then use the library in your Maven projects like this (it's on Maven Central):
+Add jitpack.io repository to your root build.gradle:
+```gradle
+allprojects {
+    repositories {
+        ...
+        maven { url 'https://jitpack.io' }
+    }
+}
+```
+Add library to dependencies:
+```gradle
+dependencies {
+    implementation 'com.github.3cky:android-oled:1.0'
+}
+```
 
-    <dependency>
-        <groupId>de.pi3g.pi</groupId>
-        <artifactId>pi-oled</artifactId>
-        <version>1.1</version>
-    </dependency>
-
-The hardware should be connected to the i2c bus. Where the i2c bus pins
-are located can be looked up e.g. here:
-http://elinux.org/RPi_Low-level_peripherals#General_Purpose_Input.2FOutput_.28GPIO.29
+The hardware should be connected to the supported USB-I2C adapter using an USB OTG cable.
 
 Then you can use the library like this:
-
-    OLEDDisplay display = new OLEDDisplay();
+```
+    ...
+    UsbI2cAdapter i2cAdapter = usbI2cManager.getAdapter(usbDevice)
+    OLEDDisplay display = new OLEDDisplay(i2cAdapter);
     display.drawStringCentered("Hello World!", Font.FONT_5X8, 25, true);
     display.update();
+```
 
 Note that you always need to call update() after you changed the content of the display
 to actually get the content displayed on the hardware.
 
-Also note that the default constructor assumes you have connected the display to
-i2c port 1 and the display's i2c address is 0x3C. If this is not the case you
-can use one of the constructors with more parameters.
+Also note that constructor used in example assumes you have connected the display 
+with i2c address 0x3C. If this is not the case, you can use the constructor with 
+an explicit display address parameter.
 
 how to build?
 =============
 
-The entire project is build with maven. Just clone the master branch, open the directory in NetBeans and hit run. Or if
-you prefer the command line:
+The entire project is build with Gradle. Just clone the master branch, open the 
+directory in Android Studio and hit build. Or if you prefer the command line:
 
-    mvn install
+    ./gradlew install
 
-should build everything correctly.
+should build and install everything correctly.

@@ -27,7 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package de.pi3g.pi.oled;
+package com.github.ykc3.android.oled;
 
 /**
  *
