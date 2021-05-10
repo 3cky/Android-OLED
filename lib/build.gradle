@@ -24,7 +24,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation 'com.github.3cky:usb-i2c-android:1.1'
+    implementation 'com.github.3cky:usb-i2c-android:1.1.0'
 }
 
 task androidSourcesJar(type: Jar) {
