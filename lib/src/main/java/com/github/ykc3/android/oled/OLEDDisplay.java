@@ -106,10 +106,13 @@ public class OLEDDisplay {
     private static final byte SSD1306_EXTERNALVCC = (byte) 0x1;
     private static final byte SSD1306_SWITCHCAPVCC = (byte) 0x2;
 
+
     private final UsbI2cDevice device;
 
     private final byte[] imageBuffer = new byte[(DISPLAY_WIDTH * DISPLAY_HEIGHT) / 8];
-    private final byte[] writeBuffer = new byte[16];
+
+    private static final int MAX_TRANSFER_SIZE = 16;
+    private final byte[] writeBuffer = new byte[MAX_TRANSFER_SIZE];
 
     /**
      * Creates an OLED display object with default display address
@@ -258,22 +261,52 @@ public class OLEDDisplay {
     }
 
     /**
-     * sends the current buffer to the display
-     * @throws IOException
+     * Do full update of display with the current buffer content.
+     * @throws IOException in case of I2C bus I/O error
      */
-    public synchronized void update() throws IOException {
+    public void update() throws IOException {
+        update(0, 0, getWidth(), getHeight());
+    }
+
+    /**
+     * Do partial update of display area with the current buffer content.
+     * @param x buffer x coordinate of the update area
+     * @param y buffer y coordinate of the update area
+     * @param w width of the update area
+     * @param h height of the update area
+     * @throws IOException in case of I2C bus I/O error
+     */
+    public synchronized void update(int x, int y, int w, int h) throws IOException {
+        if (x < 0 || x > getWidth() || y < 0 || y > getHeight() || w <= 0 || h <= 0
+                || (x + w) > getWidth() || ((y + h) > getHeight())) {
+            throw new IllegalArgumentException("Invalid update area: x=" +
+                    x + ", y=" + y + ", w=" + w + ", h=" + h);
+        }
+
         writeCommand(SSD1306_COLUMNADDR);
-        writeCommand((byte) 0);   // Column start address (0 = reset)
-        writeCommand((byte) (DISPLAY_WIDTH - 1)); // Column end address (127 = reset)
+        int startColumn = x;
+        int endColumn = x + w - 1;
+        writeCommand((byte) startColumn);   // Column start address
+        writeCommand((byte) endColumn); // Column end address
 
+        int startPage = y / 8;
+        int endPage = (y + h - 1) / 8;
         writeCommand(SSD1306_PAGEADDR);
-        writeCommand((byte) 0); // Page start address (0 = reset)
-        writeCommand((byte) 7); // Page end address
+        writeCommand((byte) startPage); // Page start address
+        writeCommand((byte) endPage); // Page end address
 
-        for (int i = 0; i < ((DISPLAY_WIDTH * DISPLAY_HEIGHT / 8) / 16); i++) {
-            // send a bunch of data in one xmission
-            System.arraycopy(imageBuffer, i * 16, writeBuffer, 0, 16);
-            device.writeRegBuffer(0x40, writeBuffer, 16);
+        int bufferIndex = 0;
+        for (int page = startPage; page <= endPage; page++) {
+            for (int column = startColumn; column <= endColumn ; column++) {
+                writeBuffer[bufferIndex++] = imageBuffer[page * DISPLAY_WIDTH + column];
+                if (bufferIndex > MAX_TRANSFER_SIZE - 1) {
+                    device.writeRegBuffer(0x40, writeBuffer, bufferIndex);
+                    bufferIndex = 0;
+                }
+            }
+        }
+        if (bufferIndex > 0) {
+            device.writeRegBuffer(0x40, writeBuffer, bufferIndex);
         }
     }
 }

@@ -21,7 +21,7 @@ allprojects {
 Add library to dependencies:
 ```gradle
 dependencies {
-    implementation 'com.github.3cky:android-oled:1.0'
+    implementation 'com.github.3cky:android-oled:1.1'
 }
 ```
 

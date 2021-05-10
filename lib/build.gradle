@@ -1,18 +1,13 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.github.dcendents.android-maven'
-
-project.archivesBaseName='android-oled'
-group='com.github.3cky'
-version='1.0'
+apply plugin: 'maven-publish'
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.2"
+    compileSdkVersion 30
 
 
     defaultConfig {
         minSdkVersion 19
-        targetSdkVersion 29
+        targetSdkVersion 30
 
         consumerProguardFiles 'consumer-rules.pro'
     }
@@ -29,7 +24,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    implementation 'com.github.3cky:usb-i2c-android:1.0.1'
+    implementation 'com.github.3cky:usb-i2c-android:1.1'
 }
 
 task androidSourcesJar(type: Jar) {
@@ -37,6 +32,17 @@ task androidSourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
 }
 
-artifacts {
-    archives androidSourcesJar
+afterEvaluate {
+    publishing {
+        publications {
+            maven(MavenPublication) {
+                groupId 'com.github.3cky'
+                artifactId 'android-oled'
+                version rootProject.ext.projectVersion
+
+                artifact(androidSourcesJar)
+                artifact(bundleReleaseAar)
+            }
+        }
+    }
 }
